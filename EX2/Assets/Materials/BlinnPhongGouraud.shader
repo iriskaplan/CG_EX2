@@ -42,22 +42,20 @@
                 v2f vert (appdata input)
                 {
                     v2f output;
-                    // final_color = colord + colors + colora =
-                    // max(l · n, 0) ∗ cd ∗ ld + max(r · v, 0)^𝝈 ∗ cs ∗ ls + ca * la
+                    float3 worldPos = mul(unity_ObjectToWorld, input.vertex).xyz;
+                    float3 worldNormal = normalize(mul((float3x3)unity_WorldToObject, input.normal));
+                
                     float4 colorA = _AmbientColor * _LightColor0;
 
-
-                    // float3 worldNormal = mul(unity_ObjectToWorld, input.vertex);
-                    float3 worldNormal = normalize(mul((float3x3)unity_WorldToObject, input.normal));
-                    float normalDotLight = dot(worldNormal, _WorldSpaceLightPos0);
-                    float4 colorD = max(normalDotLight, 0.0) * _DiffuseColor * _LightColor0;
-
-                    float3 r = 2 * normalDotLight * worldNormal - _WorldSpaceLightPos0;
-                    float4 colorS = pow(max(dot(r, _WorldSpaceCameraPos), 0.0), _Shininess) * _SpecularColor * _LightColor0;
-                    // float4 colorS = 0.0;
-                    float4 finalColor = colorA + colorD + colorS;
-                    output.color = finalColor;
-                    
+                    float3 lightDir = normalize(_WorldSpaceLightPos0.xyz);
+                    float NdotL = max(dot(worldNormal, lightDir), 0.0);
+                    float4 colorD = NdotL * _DiffuseColor * _LightColor0;
+                
+                    float3 viewDir = normalize(_WorldSpaceCameraPos.xyz - worldPos);
+                    float3 refDir = normalize(2 * NdotL * worldNormal - lightDir);
+                    float4 colorS = pow(max(dot(refDir, viewDir), 0.0), _Shininess) * _SpecularColor * _LightColor0;
+                
+                    output.color = colorA + colorD + colorS;
                     output.pos = UnityObjectToClipPos(input.vertex);
                     return output;
                 }
