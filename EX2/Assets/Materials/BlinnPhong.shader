@@ -42,7 +42,21 @@
                 // Calculates diffuse lighting of secondary point lights (part 3)
                 fixed4 pointLights(v2f input)
                 {
-                    return fixed4(0, 0, 0, 0);
+                    fixed4 totalColor = fixed4(0, 0, 0, 0);
+                    for(int i = 0; i < 4; i++) 
+                    {
+                        float3 lightPos = float3(
+                            unity_4LightPosX0[i],
+                            unity_4LightPosY0[i],
+                            unity_4LightPosZ0[i]
+                        );
+
+                        float3 lightDir = normalize(lightPos - input.worldPos);
+                        float NdotL = max(dot(input.worldNormal, lightDir), 0.0);
+                        totalColor += NdotL * _DiffuseColor * unity_LightColor[i] * unity_4LightAtten0[i];
+
+                    }
+                    return totalColor;
                 }
 
 
@@ -68,7 +82,9 @@
                     float3 refDir = normalize(2 * NdotL * input.worldNormal - lightDir);
                     float4 colorS = pow(max(dot(refDir, viewDir), 0.0), _Shininess) * _SpecularColor * _LightColor0;
                 
-                    float4 color = colorA + colorD + colorS;
+                    fixed4 color = colorA + colorD + colorS;
+                    color += pointLights(input);
+                    
                     return color;
                 }
 
