@@ -57,8 +57,12 @@ public class MeshData
         normals = new Vector3[vertices.Count];
         for (int i = 0; i < normalsForVertices.Count; i++)
         {
-            Vector3 avg = normalsForVertices[i][0] + normalsForVertices[i][1] + normalsForVertices[i][2];
-            normals[i] = avg.normalized;
+            Vector3 totalVector = Vector3.zero; 
+            foreach (Vector3 vec in normalsForVertices[i])
+            {
+                totalVector += vec;
+            }
+            normals[i] = totalVector.normalized;
         }
     }
 
